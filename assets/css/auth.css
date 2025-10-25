@@ -1,0 +1,230 @@
+/**
+ * SISTEMA DE GESTÃO DE EVENTOS
+ * Estilos para Páginas de Autenticação
+ */
+
+.auth-page {
+    background: linear-gradient(135deg, #6e8de3 0%, #1E3A8A 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-container {
+    display: flex;
+    max-width: 1200px;
+    width: 100%;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+.auth-box {
+    flex: 1;
+    padding: 3rem;
+    max-width: 500px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-logo {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.auth-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.auth-subtitle {
+    color: var(--gray-medium);
+    font-size: 1rem;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    background: var(--gray-lighter);
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    background: transparent;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    color: var(--gray-medium);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.auth-tab:hover {
+    color: var(--primary-color);
+}
+
+.auth-tab.active {
+    background: var(--white);
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.auth-form {
+    margin-top: 2rem;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.auth-link {
+    color: var(--primary-color);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.auth-divider {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gray-light);
+}
+
+.auth-divider span {
+    background: var(--white);
+    padding: 0 1rem;
+    position: relative;
+    color: var(--gray-medium);
+    font-size: 0.875rem;
+}
+
+.auth-register {
+    text-align: center;
+}
+
+.auth-register p {
+    margin-bottom: 1rem;
+    color: var(--gray-medium);
+}
+
+.auth-side {
+    flex: 1;
+    background: linear-gradient(135deg, #6e8de3 0%, #1E3A8A 100%);
+    padding: 3rem;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-side-content h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    color: var(--white);
+}
+
+.auth-features {
+    list-style: none;
+    margin-bottom: 3rem;
+}
+
+.auth-features li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+}
+
+.feature-icon {
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.auth-testimonial {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.auth-testimonial p {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    font-style: italic;
+    color: var(--white);
+}
+
+.testimonial-author {
+    display: flex;
+    flex-direction: column;
+}
+
+.testimonial-author strong {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.testimonial-author span {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .auth-side {
+        display: none;
+    }
+    
+    .auth-box {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .auth-box {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+    
+    .auth-subtitle {
+        font-size: 0.875rem;
+    }
+}
