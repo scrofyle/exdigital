@@ -23,9 +23,9 @@ define('DB_CHARSET', 'utf8mb4');
 // CONFIGURAÇÕES DO SISTEMA
 // ============================================
 define('SITE_URL', 'http://localhost/exdigital');
-define('SITE_NAME', 'eXDigital Pro');
+define('SITE_NAME', 'Gestão Eventos Pro');
 define('SITE_VERSION', '2.0.0');
-define('ADMIN_EMAIL', 'extensangola@gmail.com');
+define('ADMIN_EMAIL', 'extensangola@gmailcom.com');
 
 // ============================================
 // CONFIGURAÇÕES DE SEGURANÇA

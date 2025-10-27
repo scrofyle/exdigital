@@ -297,8 +297,9 @@ include '../includes/cliente_header.php';
                                     <?php foreach ($eventosRecentes as $evento): ?>
                                     <tr>
                                         <td>
+
                                             <div>
-                                                <strong><?php echo Security::clean($evento['nome_evento']); ?></strong>
+                                               <a href="evento-detalhes.php?id=<?php echo $evento['id']; ?>"> <strong><?php echo Security::clean($evento['nome_evento']); ?></strong></a>
                                                 <br>
                                                 <small class="text-muted"><?php echo getEventType($evento['tipo_evento']); ?></small>
                                             </div>
