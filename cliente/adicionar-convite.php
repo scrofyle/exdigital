@@ -14,7 +14,7 @@ if (!Session::isLoggedIn() || Session::getUserType() !== 'cliente') {
 
 $db = Database::getInstance()->getConnection();
 $clienteId = Session::getUserId();
-$eventoId = get('evento');
+$eventoId = isset($_GET['evento']) ? (int)$_GET['evento'] : 0;
 
 if (!$eventoId) {
     Session::setFlash('error', 'Evento não especificado');
@@ -229,3 +229,128 @@ include '../includes/cliente_header.php';
                         </div>
 
                         <hr style="margin: 2rem 0;">
+
+                        <!-- Informações Adicionais -->
+                        <h4 style="margin-bottom: 1.5rem; color: var(--gray-dark);">📋 Informações Adicionais</h4>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Tipo de Convidado</label>
+                                    <select name="tipo_convidado" class="form-control">
+                                        <option value="normal" <?php echo post('tipo_convidado', 'normal') === 'normal' ? 'selected' : ''; ?>>Normal</option>
+                                        <option value="vip" <?php echo post('tipo_convidado') === 'vip' ? 'selected' : ''; ?>>VIP</option>
+                                        <option value="familia" <?php echo post('tipo_convidado') === 'familia' ? 'selected' : ''; ?>>Família</option>
+                                        <option value="amigo" <?php echo post('tipo_convidado') === 'amigo' ? 'selected' : ''; ?>>Amigo</option>
+                                        <option value="trabalho" <?php echo post('tipo_convidado') === 'trabalho' ? 'selected' : ''; ?>>Trabalho</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="form-group">
+                                    <label class="form-label">Número da Mesa</label>
+                                    <input type="text" name="mesa_numero" class="form-control" 
+                                           placeholder="Ex: 5, A2, VIP-1"
+                                           value="<?php echo post('mesa_numero', ''); ?>">
+                                    <span class="form-help">Opcional - Útil para organização</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Observações</label>
+                            <textarea name="observacoes" class="form-control" rows="3" 
+                                      placeholder="Ex: Restrição alimentar, necessidades especiais, etc."><?php echo post('observacoes', ''); ?></textarea>
+                            <span class="form-help">Informações adicionais sobre o(s) convidado(s)</span>
+                        </div>
+
+                        <!-- Botões -->
+                        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                            <button type="submit" class="btn btn-primary">
+                                ✅ Salvar Convite
+                            </button>
+                            <a href="evento-detalhes.php?id=<?php echo $eventoId; ?>" class="btn btn-secondary">
+                                ❌ Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar com informações -->
+        <div class="col-4">
+            <!-- Info do Evento -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📊 Informações do Evento</h3>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Nome do Evento</small>
+                        <strong><?php echo Security::clean($evento['nome_evento']); ?></strong>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Data</small>
+                        <div><?php echo formatDate($evento['data_evento']); ?></div>
+                    </div>
+
+                    <hr style="margin: 1rem 0;">
+
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Convites Criados</small>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <strong style="font-size: 1.5rem; color: var(--primary-color);">
+                                <?php echo $evento['total_convites']; ?>
+                            </strong>
+                            <span style="color: var(--gray-medium);">
+                                / <?php echo $evento['max_convites']; ?>
+                            </span>
+                        </div>
+                        <div class="progress mt-2">
+                            <div class="progress-bar" style="width: <?php echo ($evento['total_convites'] / $evento['max_convites']) * 100; ?>%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Convites Restantes</small>
+                        <strong style="font-size: 1.25rem; color: var(--success-color);">
+                            <?php echo $evento['max_convites'] - $evento['total_convites']; ?>
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dicas -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">💡 Dicas</h3>
+                </div>
+                <div class="card-body">
+                    <ul style="list-style: none; padding: 0; font-size: 0.875rem;">
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <strong style="display: block; margin-bottom: 0.25rem;">✅ Dados Completos</strong>
+                            <span style="color: var(--gray-medium);">Preencha o máximo de informações possível</span>
+                        </li>
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <strong style="display: block; margin-bottom: 0.25rem;">📱 WhatsApp</strong>
+                            <span style="color: var(--gray-medium);">Use telefone com WhatsApp para enviar convite</span>
+                        </li>
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <strong style="display: block; margin-bottom: 0.25rem;">👥 Acompanhante</strong>
+                            <span style="color: var(--gray-medium);">Cada convite pode ter até 2 pessoas</span>
+                        </li>
+                        <li style="padding: 0.75rem 0;">
+                            <strong style="display: block; margin-bottom: 0.25rem;">🎯 Organização</strong>
+                            <span style="color: var(--gray-medium);">Use o número da mesa para melhor organização</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include '../includes/cliente_footer.php'; ?>
