@@ -330,16 +330,16 @@ include '../includes/cliente_header.php';
                 </div>
                 <div class="card-body">
                     <a href="criar-evento.php" class="btn btn-primary btn-block mb-2">
-                        ➕ Criar Evento
+                        <i class="bi bi-plus-square"></i> Criar Evento
                     </a>
                     <a href="meus-eventos.php" class="btn btn-success btn-block mb-2">
-                        🎉 Ver Meus Eventos
+                        <i class="bi bi-bookmark-star"></i> Ver Meus Eventos
                     </a>
                     <a href="pagamentos.php" class="btn btn-warning btn-block mb-2">
-                        💳 Pagamentos
+                        <i class="bi bi-cash-coin"></i> Pagamentos
                     </a>
                     <a href="perfil.php" class="btn btn-secondary btn-block">
-                        👤 Editar Perfil
+                        <i class="bi bi-person-lines-fill"></i> Editar Perfil
                     </a>
                 </div>
             </div>

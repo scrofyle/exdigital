@@ -185,11 +185,11 @@ include '../includes/cliente_header.php';
                 <h3 class="card-title">Lista de Convites</h3>
                 <div style="display: flex; gap: 0.5rem;">
                     <button onclick="exportTableToCSV('convitesTable', 'convites_<?php echo $evento['codigo_evento']; ?>.csv')" class="btn btn-sm btn-secondary">
-                        📥 Exportar CSV
+                        <i class="bi bi-download"></i> Exportar CSV
                     </button>
                     <?php if ($evento['pago']): ?>
                         <a href="adicionar-convite.php?evento=<?php echo $evento['id']; ?>" class="btn btn-sm btn-primary">
-                            ➕ Adicionar Convite
+                            <i class="bi bi-plus-square"></i> Adicionar Convite
                         </a>
                     <?php endif; ?>
                 </div>
@@ -238,7 +238,7 @@ include '../includes/cliente_header.php';
                                                 Nenhum convite adicionado ainda
                                             </p>
                                             <a href="adicionar-convite.php?evento=<?php echo $evento['id']; ?>" class="btn btn-primary">
-                                                ➕ Adicionar Primeiro Convite
+                                                <i class="bi bi-plus-square"></i> Adicionar Primeiro Convite
                                             </a>
                                         <?php endif; ?>
                                     </div>
@@ -305,11 +305,11 @@ include '../includes/cliente_header.php';
                                     </td>
                                     <td>
                                         <div style="display: flex; gap: 0.25rem;">
-                                            <a href="editar-convite.php?id=<?php echo $convite['id']; ?>" class="btn btn-sm btn-primary" title="Editar">✏️</a>
+                                            <a href="editar-convite.php?id=<?php echo $convite['id']; ?>" class="btn btn-sm btn-primary" title="Editar"><i class="bi bi-brush"></i></a>
                                             <a href="deletar-convite.php?id=<?php echo $convite['id']; ?>" 
                                                class="btn btn-sm btn-danger" 
                                                onclick="return confirm('Tem certeza que deseja excluir este convite?')" 
-                                               title="Deletar">🗑️</a>
+                                               title="Deletar"><i class="bi bi-trash"></i></a>
                                         </div>
                                     </td>
                                 </tr>
@@ -329,7 +329,7 @@ include '../includes/cliente_header.php';
                 <h3 class="card-title">Fornecedores do Evento</h3>
                 <?php if ($evento['pago']): ?>
                     <a href="adicionar-fornecedor.php?evento=<?php echo $evento['id']; ?>" class="btn btn-sm btn-primary">
-                        ➕ Adicionar Fornecedor
+                        <i class="bi bi-plus-square"></i> Adicionar Fornecedor
                     </a>
                 <?php endif; ?>
             </div>
@@ -341,7 +341,7 @@ include '../includes/cliente_header.php';
                         </p>
                         <?php if ($evento['pago']): ?>
                             <a href="adicionar-fornecedor.php?evento=<?php echo $evento['id']; ?>" class="btn btn-primary">
-                                ➕ Adicionar Fornecedor
+                                <i class="bi bi-plus-square"></i> Adicionar Fornecedor
                             </a>
                         <?php endif; ?>
                     </div>
@@ -421,7 +421,7 @@ include '../includes/cliente_header.php';
                     </p>
                     <?php if ($evento['pago']): ?>
                         <a href="adicionar-despesa.php?evento=<?php echo $evento['id']; ?>" class="btn btn-primary">
-                            ➕ Adicionar Despesa
+                            <i class="bi bi-plus-square"></i> Adicionar Despesa
                         </a>
                     <?php endif; ?>
                 </div>
@@ -435,7 +435,7 @@ include '../includes/cliente_header.php';
             <div class="card-header">
                 <h3 class="card-title">Informações do Evento</h3>
                 <a href="editar-evento.php?id=<?php echo $evento['id']; ?>" class="btn btn-sm btn-primary">
-                    ✏️ Editar
+                    <i class="bi bi-brush"></i>Editar
                 </a>
             </div>
             <div class="card-body">

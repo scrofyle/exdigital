@@ -180,6 +180,12 @@ include '../includes/admin_header.php';
                 <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42"></path>
                 </svg>
-            </div>        
+            </div>
+           <div class="stat-content">
+                <div class="stat-label">Receita Total</div>
+                <div class="state-value"><?php echo formatMoney($stats['receita_total']);?></div>
+
+            </div> 
+        </div>        
 
             <?php include '../includes/admin_footer.php';?>

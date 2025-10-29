@@ -71,7 +71,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 
                 <li class="sidebar-menu-item">
                     <a href="meus-eventos.php" class="sidebar-menu-link <?php echo $currentPage === 'meus-eventos' ? 'active' : ''; ?>">
-                        <span class="sidebar-menu-icon">🎉</span>
+                        <span class="sidebar-menu-icon"><i class="bi bi-bookmark-star"></i></span>
                         <span class="sidebar-menu-text">Meus Eventos</span>
                     </a>
                 </li>

@@ -25,7 +25,7 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
     <title><?php echo SITE_NAME; ?> - Admin</title>
     <link rel="stylesheet" href="<?php echo asset('css/style.css'); ?>">
     <link rel="stylesheet" href="<?php echo asset('css/admin.css'); ?>">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+   <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">-->
 </head>
 <body>
     <div class="wrapper">

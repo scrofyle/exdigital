@@ -23,8 +23,8 @@ define('DB_CHARSET', 'utf8mb4');
 // CONFIGURAÇÕES DO SISTEMA
 // ============================================
 define('SITE_URL', 'http://localhost/exdigital');
-define('SITE_NAME', 'Gestão Eventos Pro');
-define('SITE_VERSION', '2.0.0');
+define('SITE_NAME', 'ExDigital Pro');
+define('SITE_VERSION', '2.0.3');
 define('ADMIN_EMAIL', 'extensangola@gmailcom.com');
 
 // ============================================
@@ -38,7 +38,7 @@ define('LOGIN_TIMEOUT', 900); // 15 minutos
 // ============================================
 // CONFIGURAÇÕES DE UPLOAD
 // ============================================
-define('UPLOAD_PATH', __DIR__ . '/uploads/');
+define('UPLOAD_PATH', __DIR__ . '/assets/uploads/');
 define('MAX_FILE_SIZE', 5242880); // 5MB
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']);
 

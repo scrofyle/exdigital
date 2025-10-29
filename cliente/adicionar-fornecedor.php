@@ -230,7 +230,7 @@ include '../includes/cliente_header.php';
 
                         <div class="form-group">
                             <label class="form-label">Valor Contratado</label>
-                            <input type="number" name="valor_contratado" class="form-control input-money" 
+                            <input type="number" name="valor_contratado" class="form-control" 
                                    placeholder="0.00" step="0.01" min="0"
                                    value="<?php echo post('valor_contratado', ''); ?>">
                             <span class="form-help">Valor acordado para o serviço (opcional)</span>

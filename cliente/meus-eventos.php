@@ -80,7 +80,7 @@ include '../includes/cliente_header.php';
             </div>
         </div>
         <a href="criar-evento.php" class="btn btn-primary">
-            ➕ Criar Novo Evento
+            <i class="bi bi-plus-square"></i> Criar Novo Evento
         </a>
     </div>
 
@@ -159,8 +159,8 @@ include '../includes/cliente_header.php';
                 </div>
 
                 <div class="col-5">
-                    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
-                    <a href="meus-eventos.php" class="btn btn-secondary">🔄 Limpar</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Buscar</button>
+                    <a href="meus-eventos.php" class="btn btn-secondary"><i class="bi bi-x-square"></i> Limpar</a>
                 </div>
             </form>
         </div>
@@ -193,7 +193,7 @@ include '../includes/cliente_header.php';
                             Crie seu primeiro evento e comece a gerenciar seus convidados
                         </p>
                         <a href="criar-evento.php" class="btn btn-primary btn-lg">
-                            ➕ Criar Primeiro Evento
+                            <i class="bi bi-plus-square"></i> Criar Primeiro Evento
                         </a>
                     <?php else: ?>
                         <a href="meus-eventos.php" class="btn btn-secondary">
@@ -260,16 +260,20 @@ include '../includes/cliente_header.php';
                                 <?php if (!$evento['pago']): ?>
                                     <a href="processar-pagamento.php?evento=<?php echo $evento['id']; ?>" 
                                        class="btn btn-sm btn-warning" title="Pagar">
-                                        💳 Pagar
+                                        <i class="bi bi-cash-stack"></i> Pagar
                                     </a>
                                 <?php endif; ?>
                                 <a href="evento-detalhes.php?id=<?php echo $evento['id']; ?>" 
                                    class="btn btn-sm btn-primary" title="Ver Detalhes">
-                                    👁️ Ver
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                                <a href="editar-evento.php?id=<?php echo $evento['id']; ?>" 
+                                   class="btn btn-sm btn-primary" title="Ver Detalhes">
+                                    <i class="bi bi-brush"></i> Editar
                                 </a>
                                 <a href="relatorio-evento.php?id=<?php echo $evento['id']; ?>" 
                                    class="btn btn-sm btn-info" title="Relatório">
-                                    📊
+                                    <i class="bi bi-clipboard-data"></i>
                                 </a>
                             </div>
                         </div>

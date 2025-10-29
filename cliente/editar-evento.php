@@ -1,7 +1,7 @@
 <?php
 /**
  * SISTEMA DE GESTÃO DE EVENTOS
- * Editar Convite
+ * Editar Evento
  */
 
 define('SYSTEM_INIT', true);
@@ -14,87 +14,110 @@ if (!Session::isLoggedIn() || Session::getUserType() !== 'cliente') {
 
 $db = Database::getInstance()->getConnection();
 $clienteId = Session::getUserId();
-$conviteId = get('id');
+$eventoId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (!$conviteId) {
-    Session::setFlash('error', 'Convite não especificado');
-    redirect('/cliente/dashboard.php');
+if (!$eventoId) {
+    Session::setFlash('error', 'Evento não especificado');
+    redirect('/cliente/meus-eventos.php');
 }
 
-// Buscar convite e verificar se pertence ao cliente
+// Buscar evento
 $stmt = $db->prepare("
-    SELECT c.*, e.nome_evento, e.cliente_id, e.id as evento_id
-    FROM convites c
-    JOIN eventos e ON c.evento_id = e.id
-    WHERE c.id = ? AND e.cliente_id = ?
+    SELECT e.*, p.nome as plano_nome
+    FROM eventos e
+    JOIN planos p ON e.plano_id = p.id
+    WHERE e.id = ? AND e.cliente_id = ?
 ");
-$stmt->execute([$conviteId, $clienteId]);
-$convite = $stmt->fetch();
+$stmt->execute([$eventoId, $clienteId]);
+$evento = $stmt->fetch();
 
-if (!$convite) {
-    Session::setFlash('error', 'Convite não encontrado');
-    redirect('/cliente/dashboard.php');
+if (!$evento) {
+    Session::setFlash('error', 'Evento não encontrado');
+    redirect('/cliente/meus-eventos.php');
 }
+
+// Buscar planos disponíveis
+$stmt = $db->query("SELECT * FROM planos WHERE status = 'ativo' ORDER BY preco_aoa ASC");
+$planos = $stmt->fetchAll();
 
 $errors = [];
 
 if (isPost()) {
-    $nomeConvidado1 = post('nome_convidado1');
-    $telefone1 = post('telefone1');
-    $email1 = post('email1');
-    $nomeConvidado2 = post('nome_convidado2');
-    $telefone2 = post('telefone2');
-    $email2 = post('email2');
-    $tipoConvidado = post('tipo_convidado', 'normal');
-    $mesaNumero = post('mesa_numero');
+    $nomeEvento = post('nome_evento');
+    $tipoEvento = post('tipo_evento');
+    $descricao = post('descricao');
+    $dataEvento = post('data_evento');
+    $horaInicio = post('hora_inicio');
+    $horaFim = post('hora_fim');
+    $localNome = post('local_nome');
+    $localEndereco = post('local_endereco');
+    $localCidade = post('local_cidade');
+    $numeroConvidados = post('numero_convidados_esperado');
     $observacoes = post('observacoes');
     
     // Validações
-    if (empty($nomeConvidado1)) {
-        $errors['nome1'] = 'Nome do primeiro convidado é obrigatório';
+    if (empty($nomeEvento)) {
+        $errors['nome'] = 'Nome do evento é obrigatório';
     }
     
-    if ($email1 && !Security::validateEmail($email1)) {
-        $errors['email1'] = 'Email inválido';
+    if (empty($tipoEvento)) {
+        $errors['tipo'] = 'Tipo de evento é obrigatório';
     }
     
-    if ($email2 && !Security::validateEmail($email2)) {
-        $errors['email2'] = 'Email inválido';
+    if (empty($dataEvento)) {
+        $errors['data'] = 'Data do evento é obrigatória';
+    } else {
+        // Verificar se a data não é no passado
+        $dataEventoTimestamp = strtotime($dataEvento);
+        if ($dataEventoTimestamp < strtotime('today')) {
+            $errors['data'] = 'Data do evento não pode ser no passado';
+        }
     }
     
     if (empty($errors)) {
         try {
             $stmt = $db->prepare("
-                UPDATE convites SET
-                    nome_convidado1 = ?, telefone1 = ?, email1 = ?,
-                    nome_convidado2 = ?, telefone2 = ?, email2 = ?,
-                    tipo_convidado = ?, mesa_numero = ?, observacoes = ?,
+                UPDATE eventos SET
+                    nome_evento = ?,
+                    tipo_evento = ?,
+                    descricao = ?,
+                    data_evento = ?,
+                    hora_inicio = ?,
+                    hora_fim = ?,
+                    local_nome = ?,
+                    local_endereco = ?,
+                    local_cidade = ?,
+                    numero_convidados_esperado = ?,
+                    observacoes = ?,
                     atualizado_em = NOW()
-                WHERE id = ?
+                WHERE id = ? AND cliente_id = ?
             ");
             
             $stmt->execute([
-                $nomeConvidado1,
-                $telefone1,
-                $email1,
-                $nomeConvidado2,
-                $telefone2,
-                $email2,
-                $tipoConvidado,
-                $mesaNumero,
+                $nomeEvento,
+                $tipoEvento,
+                $descricao,
+                $dataEvento,
+                $horaInicio,
+                $horaFim,
+                $localNome,
+                $localEndereco,
+                $localCidade,
+                $numeroConvidados ?: null,
                 $observacoes,
-                $conviteId
+                $eventoId,
+                $clienteId
             ]);
             
             // Registrar log
-            logAccess('cliente', $clienteId, 'editar_convite', "Convite editado: $nomeConvidado1");
+            logAccess('cliente', $clienteId, 'editar_evento', "Evento editado: $nomeEvento (ID: $eventoId)");
             
-            Session::setFlash('success', 'Convite atualizado com sucesso!');
-            redirect('/cliente/evento-detalhes.php?id=' . $convite['evento_id']);
+            Session::setFlash('success', 'Evento atualizado com sucesso!');
+            redirect('/cliente/evento-detalhes.php?id=' . $eventoId);
             
         } catch (PDOException $e) {
-            $errors['geral'] = 'Erro ao atualizar convite. Tente novamente.';
-            error_log("Erro ao editar convite: " . $e->getMessage());
+            $errors['geral'] = 'Erro ao atualizar evento. Tente novamente.';
+            error_log("Erro ao editar evento: " . $e->getMessage());
         }
     }
 }
@@ -106,15 +129,17 @@ include '../includes/cliente_header.php';
     <!-- Page Header -->
     <div class="page-header">
         <div>
-            <h1 class="page-title">Editar Convite</h1>
+            <h1 class="page-title">Editar Evento</h1>
             <div class="page-breadcrumb">
                 <a href="dashboard.php">Início</a>
                 <span class="breadcrumb-separator">/</span>
-                <a href="evento-detalhes.php?id=<?php echo $convite['evento_id']; ?>">
-                    <?php echo truncate($convite['nome_evento'], 30); ?>
+                <a href="meus-eventos.php">Meus Eventos</a>
+                <span class="breadcrumb-separator">/</span>
+                <a href="evento-detalhes.php?id=<?php echo $eventoId; ?>">
+                    <?php echo truncate($evento['nome_evento'], 30); ?>
                 </a>
                 <span class="breadcrumb-separator">/</span>
-                <span>Editar Convite</span>
+                <span>Editar</span>
             </div>
         </div>
     </div>
@@ -132,160 +157,141 @@ include '../includes/cliente_header.php';
         <div class="col-8">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Dados dos Convidados</h3>
-                    <span class="badge badge-secondary">Código: <?php echo $convite['codigo_convite']; ?></span>
+                    <h3 class="card-title">Dados do Evento</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" data-validate>
                         
-                        <!-- Convidado 1 -->
-                        <h4 style="margin-bottom: 1.5rem; color: var(--primary-color);">👤 Convidado Principal</h4>
+                        <!-- Informações Básicas -->
+                        <h4 style="margin-bottom: 1.5rem; color: var(--primary-color);">📋 Informações Básicas</h4>
                         
                         <div class="form-group">
-                            <label class="form-label form-label-required">Nome Completo</label>
-                            <input type="text" name="nome_convidado1" 
-                                   class="form-control <?php echo isset($errors['nome1']) ? 'error' : ''; ?>" 
-                                   placeholder="Ex: João Silva"
-                                   value="<?php echo Security::clean($convite['nome_convidado1']); ?>" required>
-                            <?php if (isset($errors['nome1'])): ?>
-                                <span class="form-error"><?php echo $errors['nome1']; ?></span>
+                            <label class="form-label form-label-required">Nome do Evento</label>
+                            <input type="text" name="nome_evento" 
+                                   class="form-control <?php echo isset($errors['nome']) ? 'error' : ''; ?>" 
+                                   placeholder="Ex: Casamento de João e Maria"
+                                   value="<?php echo Security::clean($evento['nome_evento']); ?>" required>
+                            <?php if (isset($errors['nome'])): ?>
+                                <span class="form-error"><?php echo $errors['nome']; ?></span>
                             <?php endif; ?>
                         </div>
 
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">
-                                    <label class="form-label">Telefone</label>
-                                    <input type="tel" name="telefone1" class="form-control" 
-                                           placeholder="+244 900 000 000"
-                                           value="<?php echo Security::clean($convite['telefone1']); ?>">
-                                </div>
-                            </div>
-
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email1" 
-                                           class="form-control <?php echo isset($errors['email1']) ? 'error' : ''; ?>" 
-                                           placeholder="joao@email.com"
-                                           value="<?php echo Security::clean($convite['email1']); ?>">
-                                    <?php if (isset($errors['email1'])): ?>
-                                        <span class="form-error"><?php echo $errors['email1']; ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="form-checkbox">
-                                <input type="checkbox" id="presente1" name="presente1" 
-                                       <?php echo $convite['presente_convidado1'] ? 'checked' : ''; ?> disabled>
-                                <label for="presente1">
-                                    Marcado como presente
-                                    <?php if ($convite['hora_checkin1']): ?>
-                                        <small style="color: var(--gray-medium);">
-                                            (Check-in: <?php echo formatDateTime($convite['hora_checkin1']); ?>)
-                                        </small>
-                                    <?php endif; ?>
-                                </label>
-                            </div>
-                        </div>
-
-                        <hr style="margin: 2rem 0;">
-
-                        <!-- Convidado 2 (Opcional) -->
-                        <h4 style="margin-bottom: 1rem; color: var(--gray-dark);">👥 Segundo Convidado <span style="font-size: 0.875rem; font-weight: normal; color: var(--gray-medium);">(Opcional)</span></h4>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Nome Completo</label>
-                            <input type="text" name="nome_convidado2" class="form-control" 
-                                   placeholder="Ex: Maria Silva"
-                                   value="<?php echo Security::clean($convite['nome_convidado2']); ?>">
-                            <span class="form-help">Deixe em branco se for apenas 1 pessoa</span>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Telefone</label>
-                                    <input type="tel" name="telefone2" class="form-control" 
-                                           placeholder="+244 900 000 000"
-                                           value="<?php echo Security::clean($convite['telefone2']); ?>">
-                                </div>
-                            </div>
-
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email2" 
-                                           class="form-control <?php echo isset($errors['email2']) ? 'error' : ''; ?>" 
-                                           placeholder="maria@email.com"
-                                           value="<?php echo Security::clean($convite['email2']); ?>">
-                                    <?php if (isset($errors['email2'])): ?>
-                                        <span class="form-error"><?php echo $errors['email2']; ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-
-                        <?php if ($convite['nome_convidado2']): ?>
-                        <div class="form-group">
-                            <div class="form-checkbox">
-                                <input type="checkbox" id="presente2" name="presente2" 
-                                       <?php echo $convite['presente_convidado2'] ? 'checked' : ''; ?> disabled>
-                                <label for="presente2">
-                                    Marcado como presente
-                                    <?php if ($convite['hora_checkin2']): ?>
-                                        <small style="color: var(--gray-medium);">
-                                            (Check-in: <?php echo formatDateTime($convite['hora_checkin2']); ?>)
-                                        </small>
-                                    <?php endif; ?>
-                                </label>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-
-                        <hr style="margin: 2rem 0;">
-
-                        <!-- Informações Adicionais -->
-                        <h4 style="margin-bottom: 1.5rem; color: var(--gray-dark);">ℹ️ Informações Adicionais</h4>
-
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="form-group">
-                                    <label class="form-label">Tipo de Convidado</label>
-                                    <select name="tipo_convidado" class="form-control">
-                                        <option value="normal" <?php echo $convite['tipo_convidado'] === 'normal' ? 'selected' : ''; ?>>Normal</option>
-                                        <option value="vip" <?php echo $convite['tipo_convidado'] === 'vip' ? 'selected' : ''; ?>>VIP</option>
-                                        <option value="familia" <?php echo $convite['tipo_convidado'] === 'familia' ? 'selected' : ''; ?>>Família</option>
-                                        <option value="amigo" <?php echo $convite['tipo_convidado'] === 'amigo' ? 'selected' : ''; ?>>Amigo</option>
-                                        <option value="trabalho" <?php echo $convite['tipo_convidado'] === 'trabalho' ? 'selected' : ''; ?>>Trabalho</option>
+                                    <label class="form-label form-label-required">Tipo de Evento</label>
+                                    <select name="tipo_evento" class="form-control <?php echo isset($errors['tipo']) ? 'error' : ''; ?>" required>
+                                        <option value="">Selecione...</option>
+                                        <option value="casamento" <?php echo $evento['tipo_evento'] === 'casamento' ? 'selected' : ''; ?>>💍 Casamento</option>
+                                        <option value="aniversario" <?php echo $evento['tipo_evento'] === 'aniversario' ? 'selected' : ''; ?>>🎂 Aniversário</option>
+                                        <option value="noivado" <?php echo $evento['tipo_evento'] === 'noivado' ? 'selected' : ''; ?>>💑 Noivado</option>
+                                        <option value="corporativo" <?php echo $evento['tipo_evento'] === 'corporativo' ? 'selected' : ''; ?>>💼 Corporativo</option>
+                                        <option value="batizado" <?php echo $evento['tipo_evento'] === 'batizado' ? 'selected' : ''; ?>>👶 Batizado</option>
+                                        <option value="formatura" <?php echo $evento['tipo_evento'] === 'formatura' ? 'selected' : ''; ?>>🎓 Formatura</option>
+                                        <option value="outro" <?php echo $evento['tipo_evento'] === 'outro' ? 'selected' : ''; ?>>📦 Outro</option>
                                     </select>
+                                    <?php if (isset($errors['tipo'])): ?>
+                                        <span class="form-error"><?php echo $errors['tipo']; ?></span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
 
                             <div class="col-6">
                                 <div class="form-group">
-                                    <label class="form-label">Número da Mesa</label>
-                                    <input type="text" name="mesa_numero" class="form-control" 
-                                           placeholder="Ex: Mesa 5"
-                                           value="<?php echo Security::clean($convite['mesa_numero']); ?>">
+                                    <label class="form-label">Número de Convidados Esperado</label>
+                                    <input type="number" name="numero_convidados_esperado" class="form-control" 
+                                           placeholder="Ex: 150" min="1"
+                                           value="<?php echo $evento['numero_convidados_esperado']; ?>">
+                                    <span class="form-help">Estimativa de pessoas</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Observações</label>
-                            <textarea name="observacoes" class="form-control" rows="3" 
-                                      placeholder="Observações adicionais sobre este convite..."><?php echo Security::clean($convite['observacoes']); ?></textarea>
+                            <label class="form-label">Descrição</label>
+                            <textarea name="descricao" class="form-control" rows="3" 
+                                      placeholder="Descreva seu evento..."><?php echo Security::clean($evento['descricao']); ?></textarea>
                         </div>
 
+                        <hr style="margin: 2rem 0;">
+
+                        <!-- Data e Horário -->
+                        <h4 style="margin-bottom: 1.5rem; color: var(--primary-color);">📅 Data e Horário</h4>
+
+                        <div class="row">
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label form-label-required">Data do Evento</label>
+                                    <input type="date" name="data_evento" 
+                                           class="form-control <?php echo isset($errors['data']) ? 'error' : ''; ?>" 
+                                           value="<?php echo date('Y-m-d', strtotime($evento['data_evento'])); ?>" required>
+                                    <?php if (isset($errors['data'])): ?>
+                                        <span class="form-error"><?php echo $errors['data']; ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Hora de Início</label>
+                                    <input type="time" name="hora_inicio" class="form-control" 
+                                           value="<?php echo $evento['hora_inicio']; ?>">
+                                </div>
+                            </div>
+
+                            <div class="col-4">
+                                <div class="form-group">
+                                    <label class="form-label">Hora de Término</label>
+                                    <input type="time" name="hora_fim" class="form-control" 
+                                           value="<?php echo $evento['hora_fim']; ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr style="margin: 2rem 0;">
+
+                        <!-- Local -->
+                        <h4 style="margin-bottom: 1.5rem; color: var(--primary-color);">📍 Local do Evento</h4>
+
+                        <div class="form-group">
+                            <label class="form-label">Nome do Local</label>
+                            <input type="text" name="local_nome" class="form-control" 
+                                   placeholder="Ex: Salão de Festas Imperial"
+                                   value="<?php echo Security::clean($evento['local_nome']); ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Endereço</label>
+                            <input type="text" name="local_endereco" class="form-control" 
+                                   placeholder="Rua, número, bairro"
+                                   value="<?php echo Security::clean($evento['local_endereco']); ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Cidade</label>
+                            <input type="text" name="local_cidade" class="form-control" 
+                                   placeholder="Ex: Luanda"
+                                   value="<?php echo Security::clean($evento['local_cidade']); ?>">
+                        </div>
+
+                        <hr style="margin: 2rem 0;">
+
+                        <!-- Observações -->
+                        <h4 style="margin-bottom: 1.5rem; color: var(--primary-color);">📝 Observações</h4>
+
+                        <div class="form-group">
+                            <label class="form-label">Observações Adicionais</label>
+                            <textarea name="observacoes" class="form-control" rows="4" 
+                                      placeholder="Informações importantes sobre o evento..."><?php echo Security::clean($evento['observacoes']); ?></textarea>
+                        </div>
+
+                        <!-- Botões -->
                         <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                             <button type="submit" class="btn btn-primary btn-lg">
-                                ✓ Salvar Alterações
+                                ✅ Salvar Alterações
                             </button>
-                            <a href="evento-detalhes.php?id=<?php echo $convite['evento_id']; ?>" class="btn btn-secondary btn-lg">
-                                Cancelar
+                            <a href="evento-detalhes.php?id=<?php echo $eventoId; ?>" class="btn btn-secondary btn-lg">
+                                ❌ Cancelar
                             </a>
                         </div>
                     </form>
@@ -293,113 +299,73 @@ include '../includes/cliente_header.php';
             </div>
         </div>
 
-        <!-- Informações -->
+        <!-- Sidebar -->
         <div class="col-4">
-            <div class="card mb-3">
+            <!-- Info do Evento -->
+            <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">📋 Informações do Convite</h3>
+                    <h3 class="card-title">📊 Informações do Evento</h3>
                 </div>
                 <div class="card-body">
                     <div style="margin-bottom: 1rem;">
-                        <small style="color: var(--gray-medium);">Código do Convite</small>
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Código do Evento</small>
+                        <strong style="font-size: 1.25rem; color: var(--primary-color);">
+                            <?php echo $evento['codigo_evento']; ?>
+                        </strong>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Plano Atual</small>
+                        <div><strong><?php echo $evento['plano_nome']; ?></strong></div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Status</small>
+                        <div><?php echo getStatusLabel($evento['status'], 'evento'); ?></div>
+                    </div>
+
+                    <div style="margin-bottom: 1rem;">
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Pagamento</small>
                         <div>
-                            <strong style="font-size: 1.25rem; color: var(--primary-color);">
-                                <?php echo $convite['codigo_convite']; ?>
-                            </strong>
-                            <button onclick="copyToClipboard('<?php echo $convite['codigo_convite']; ?>')" 
-                                    class="btn btn-sm btn-secondary" style="padding: 0.25rem 0.5rem; margin-left: 0.5rem;">
-                                📋
-                            </button>
+                            <?php if ($evento['pago']): ?>
+                                <span class="badge badge-success">✔ Pago</span>
+                            <?php else: ?>
+                                <span class="badge badge-warning">Pendente</span>
+                            <?php endif; ?>
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 1rem;">
-                        <small style="color: var(--gray-medium);">Evento</small>
-                        <div><strong><?php echo Security::clean($convite['nome_evento']); ?></strong></div>
+                    <div>
+                        <small style="color: var(--gray-medium); display: block; margin-bottom: 0.25rem;">Criado em</small>
+                        <div><?php echo formatDate($evento['criado_em']); ?></div>
                     </div>
-
-                    <div style="margin-bottom: 1rem;">
-                        <small style="color: var(--gray-medium);">Criado em</small>
-                        <div><?php echo formatDateTime($convite['criado_em']); ?></div>
-                    </div>
-
-                    <?php if ($convite['atualizado_em'] && $convite['atualizado_em'] != $convite['criado_em']): ?>
-                    <div style="margin-bottom: 1rem;">
-                        <small style="color: var(--gray-medium);">Última atualização</small>
-                        <div><?php echo formatDateTime($convite['atualizado_em']); ?></div>
-                    </div>
-                    <?php endif; ?>
-
-                    <hr style="margin: 1rem 0;">
-
-                    <button onclick="showQRCode('<?php echo $convite['codigo_convite']; ?>')" 
-                            class="btn btn-info btn-block">
-                        📱 Ver QR Code
-                    </button>
                 </div>
             </div>
 
-            <div class="card mb-3">
-                <div class="card-header" style="background: var(--danger-color); color: white;">
-                    <h3 class="card-title" style="color: white; margin: 0;">⚠️ Zona de Perigo</h3>
-                </div>
-                <div class="card-body">
-                    <p style="color: var(--gray-dark); font-size: 0.875rem; margin-bottom: 1rem;">
-                        A exclusão deste convite é permanente e não pode ser desfeita.
-                    </p>
-                    <a href="deletar-convite.php?id=<?php echo $convite['id']; ?>" 
-                       class="btn btn-danger btn-block"
-                       onclick="return confirm('Tem certeza que deseja excluir este convite?\n\nConvidado(s): <?php echo $convite['nome_convidado1']; ?><?php echo $convite['nome_convidado2'] ? ' e ' . $convite['nome_convidado2'] : ''; ?>\n\nEsta ação não pode ser desfeita!');">
-                        🗑️ Deletar Convite
-                    </a>
-                </div>
-            </div>
-
-            <div class="card">
+            <!-- Aviso -->
+            <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">💡 Dica</h3>
+                    <h3 class="card-title">⚠️ Atenção</h3>
                 </div>
                 <div class="card-body">
-                    <p style="font-size: 0.875rem; color: var(--gray-dark);">
-                        As informações de presença (check-in) não podem ser editadas manualmente. 
-                        Use o QR Code no dia do evento para registrar a presença.
-                    </p>
+                    <ul style="list-style: none; padding: 0; font-size: 0.875rem;">
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <strong style="display: block; margin-bottom: 0.25rem;">Plano não pode ser alterado</strong>
+                            <span style="color: var(--gray-medium);">O plano foi definido na criação</span>
+                        </li>
+                        <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <strong style="display: block; margin-bottom: 0.25rem;">Data no passado</strong>
+                            <span style="color: var(--gray-medium);">Não é permitido definir data anterior a hoje</span>
+                        </li>
+                        <li style="padding: 0.75rem 0;">
+                            <strong style="display: block; margin-bottom: 0.25rem;">Convites não afetados</strong>
+                            <span style="color: var(--gray-medium);">Os convites já criados não serão alterados</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Modal QR Code -->
-<div class="modal-overlay" id="qrCodeModal">
-    <div class="modal" style="max-width: 400px;">
-        <div class="modal-header">
-            <h3 class="modal-title">QR Code do Convite</h3>
-            <button class="modal-close" onclick="closeModal('qrCodeModal')">×</button>
-        </div>
-        <div class="modal-body text-center">
-            <div id="qrCodeContainer" style="padding: 2rem;">
-                <!-- QR Code será inserido aqui -->
-            </div>
-            <p style="margin-top: 1rem; color: var(--gray-medium);">
-                Código: <strong><?php echo $convite['codigo_convite']; ?></strong>
-            </p>
-        </div>
-        <div class="modal-footer">
-            <button onclick="closeModal('qrCodeModal')" class="btn btn-secondary">Fechar</button>
-        </div>
-    </div>
-</div>
-
-<script>
-function showQRCode(codigo) {
-    const container = document.getElementById('qrCodeContainer');
-    const url = '<?php echo SITE_URL; ?>/api/verificar-convite.php?codigo=' + codigo;
-    
-    container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}" alt="QR Code" style="max-width: 100%;">`;
-    
-    openModal('qrCodeModal');
-}
-</script>
 
 <?php include '../includes/cliente_footer.php'; ?>

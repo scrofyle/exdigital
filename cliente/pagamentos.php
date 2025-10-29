@@ -125,7 +125,7 @@ include '../includes/cliente_header.php';
                         Crie um evento para começar
                     </p>
                     <a href="criar-evento.php" class="btn btn-primary btn-lg">
-                        ➕ Criar Evento
+                        <i class="bi bi-plus-square"></i> Criar Evento
                     </a>
                 </div>
             <?php else: ?>
@@ -189,7 +189,7 @@ include '../includes/cliente_header.php';
                                             👁️
                                         </a>
                                     <?php elseif ($pagamento['status'] === 'aprovado'): ?>
-                                        <span class="text-muted" title="Pagamento aprovado">✓</span>
+                                        <span class="text-muted" title="Pagamento aprovado"><i class="bi bi-check-circle"></i></span>
                                     <?php elseif ($pagamento['status'] === 'rejeitado'): ?>
                                         <button class="btn btn-sm btn-warning" 
                                                 onclick="alert('Pagamento rejeitado. Entre em contato com o suporte.')" 

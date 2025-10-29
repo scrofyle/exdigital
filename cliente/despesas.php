@@ -84,7 +84,7 @@ include '../includes/cliente_header.php';
             </div>
         </div>
         <a href="adicionar-despesa.php?evento=<?php echo $eventoId; ?>" class="btn btn-primary">
-            ➕ Adicionar Despesa
+            <i class="bi bi-plus-square"></i> Adicionar Despesa
         </a>
     </div>
 
@@ -141,13 +141,13 @@ include '../includes/cliente_header.php';
 
     <div class="row">
         <!-- Lista de Despesas -->
-        <div class="col-8">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Todas as Despesas</h3>
                     <button onclick="exportTableToCSV('despesasTable', 'despesas_<?php echo $evento['codigo_evento']; ?>.csv')" 
                             class="btn btn-sm btn-secondary">
-                        📥 Exportar CSV
+                        <i class="bi bi-download"></i> Exportar CSV
                     </button>
                 </div>
                 <div class="card-body p-0">
@@ -163,7 +163,7 @@ include '../includes/cliente_header.php';
                                 Comece a controlar suas despesas do evento
                             </p>
                             <a href="adicionar-despesa.php?evento=<?php echo $eventoId; ?>" class="btn btn-primary btn-lg">
-                                ➕ Adicionar Primeira Despesa
+                                <i class="bi bi-plus-square"></i> Adicionar Primeira Despesa
                             </a>
                         </div>
                     <?php else: ?>
@@ -218,13 +218,13 @@ include '../includes/cliente_header.php';
                                             <div style="display: flex; gap: 0.25rem;">
                                                 <button onclick="editarDespesa(<?php echo $despesa['id']; ?>)" 
                                                         class="btn btn-sm btn-primary" title="Editar">
-                                                    ✏️
+                                                    <i class="bi bi-brush"></i>
                                                 </button>
                                                 <a href="deletar-despesa.php?id=<?php echo $despesa['id']; ?>" 
                                                    class="btn btn-sm btn-danger" 
                                                    onclick="return confirm('Tem certeza que deseja excluir esta despesa?')" 
                                                    title="Deletar">
-                                                    🗑️
+                                                    <i class="bi bi-trash"></i>
                                                 </a>
                                             </div>
                                         </td>

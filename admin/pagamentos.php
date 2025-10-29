@@ -271,7 +271,7 @@ include '../includes/admin_header.php';
                                     <?php endif; ?>
                                     
                                     <?php if ($pagamento['comprovante']): ?>
-                                        <a href="<?php echo ('../uploads/' . $pagamento['comprovante']); ?>" 
+                                        <a href="<?php echo asset('/uploads/' . $pagamento['comprovante']); ?>" 
                                            target="_blank" 
                                            class="btn btn-sm btn-info" title="Ver Comprovante">
                                             📄

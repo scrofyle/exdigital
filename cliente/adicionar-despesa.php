@@ -194,7 +194,7 @@ include '../includes/cliente_header.php';
                                 <div class="form-group">
                                     <label class="form-label form-label-required">Valor</label>
                                     <input type="number" name="valor" 
-                                           class="form-control input-money <?php echo isset($errors['valor']) ? 'error' : ''; ?>" 
+                                           class="form-control <?php echo isset($errors['valor']) ? 'error' : ''; ?>" 
                                            placeholder="0.00" step="0.01" min="0.01"
                                            value="<?php echo post('valor', ''); ?>" required>
                                     <?php if (isset($errors['valor'])): ?>
