@@ -1,7 +1,7 @@
 <?php
 /**
  * SISTEMA DE GESTÃO DE EVENTOS
- * Dashboard do Administrador
+ * Dashboard do Administrador - Versão Completa
  */
 
 define('SYSTEM_INIT', true);
@@ -95,17 +95,34 @@ $stmt = $db->query("
 ");
 $graficoEventos = $stmt->fetchAll();
 
+// Clientes mais recentes
+$stmt = $db->query("
+    SELECT id, nome_completo, email, telefone, criado_em, status
+    FROM clientes
+    ORDER BY criado_em DESC
+    LIMIT 5
+");
+$clientesRecentes = $stmt->fetchAll();
+
 include '../includes/admin_header.php';
 ?>
 
 <div class="content">
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">Dashboard</h1>
+        <h1 class="page-title">📊 Dashboard</h1>
         <div class="page-breadcrumb">
             <span>Início</span>
             <span class="breadcrumb-separator">/</span>
             <span>Dashboard</span>
+        </div>
+    </div>
+
+    <!-- Welcome Message -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white;">
+        <div class="card-body">
+            <h3 style="color: white; margin-bottom: 0.5rem;">👋 Bem-vindo, <?php echo Security::clean($userName); ?>!</h3>
+            <p style="margin: 0; opacity: 0.9;">Aqui está o resumo das atividades do sistema hoje.</p>
         </div>
     </div>
 
@@ -181,11 +198,253 @@ include '../includes/admin_header.php';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42"></path>
                 </svg>
             </div>
-           <div class="stat-content">
+            <div class="stat-content">
                 <div class="stat-label">Receita Total</div>
-                <div class="state-value"><?php echo formatMoney($stats['receita_total']);?></div>
+                <div class="stat-value"><?php echo formatMoney($stats['receita_total']); ?></div>
+            </div>
+        </div>
+    </div>
 
-            </div> 
-        </div>        
+    <!-- Receita do Mês -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, #10B981, #059669); color: white;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 style="color: white; margin-bottom: 0.5rem;">💰 Receita do Mês</h5>
+                            <h2 style="color: white; margin: 0;"><?php echo formatMoney($stats['receita_mes']); ?></h2>
+                        </div>
+                        <div style="font-size: 3rem; opacity: 0.3;">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <?php include '../includes/admin_footer.php';?>
+    <!-- Eventos Recentes & Pagamentos Pendentes -->
+    <div class="row mt-4">
+        <!-- Eventos Recentes -->
+        <div class="col-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📅 Eventos Recentes</h3>
+                    <a href="eventos.php" class="btn btn-sm btn-outline">Ver Todos</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nome do Evento</th>
+                                    <th>Cliente</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($eventosRecentes)): ?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Nenhum evento encontrado</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($eventosRecentes as $evento): ?>
+                                    <tr>
+                                        <td><strong><?php echo Security::clean($evento['codigo_evento']); ?></strong></td>
+                                        <td>
+                                            <strong><?php echo Security::clean($evento['nome_evento']); ?></strong><br>
+                                            <small class="text-muted"><?php echo getEventType($evento['tipo_evento']); ?></small>
+                                        </td>
+                                        <td>
+                                            <?php echo Security::clean($evento['cliente_nome']); ?><br>
+                                            <small class="text-muted"><?php echo Security::clean($evento['cliente_email']); ?></small>
+                                        </td>
+                                        <td><?php echo formatDate($evento['data_evento']); ?></td>
+                                        <td><?php echo getStatusLabel($evento['status'], 'evento'); ?></td>
+                                        <td>
+                                            <a href="ver-evento.php?id=<?php echo $evento['id']; ?>" 
+                                               class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagamentos Recentes -->
+        <div class="col-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💳 Pagamentos Recentes</h3>
+                    <a href="pagamentos.php" class="btn btn-sm btn-outline">Ver Todos</a>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($pagamentosRecentes)): ?>
+                        <p class="text-muted text-center">Nenhum pagamento encontrado</p>
+                    <?php else: ?>
+                        <?php foreach ($pagamentosRecentes as $pag): ?>
+                        <div class="payment-item" style="padding: 1rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong><?php echo Security::clean($pag['cliente_nome']); ?></strong><br>
+                                    <small class="text-muted"><?php echo Security::clean($pag['plano_nome']); ?></small>
+                                </div>
+                                <div>
+                                    <?php echo getStatusLabel($pag['status'], 'pagamento'); ?>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.813rem;">
+                                    <?php echo formatDateTime($pag['criado_em']); ?>
+                                </span>
+                                <strong><?php echo formatMoney($pag['valor'], $pag['moeda']); ?></strong>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Clientes Recentes -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">👥 Novos Clientes</h3>
+                    <a href="clientes.php" class="btn btn-sm btn-outline">Ver Todos</a>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($clientesRecentes)): ?>
+                        <p class="text-muted text-center">Nenhum cliente encontrado</p>
+                    <?php else: ?>
+                        <?php foreach ($clientesRecentes as $cliente): ?>
+                        <div class="client-item" style="padding: 0.75rem 0; border-bottom: 1px solid var(--gray-lighter);">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="<?php echo asset('images/default-avatar.png'); ?>" 
+                                     alt="Avatar" 
+                                     style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary-color);">
+                                <div style="flex: 1;">
+                                    <strong style="display: block;"><?php echo Security::clean($cliente['nome_completo']); ?></strong>
+                                    <small class="text-muted"><?php echo timeAgo($cliente['criado_em']); ?></small>
+                                </div>
+                                <?php echo getStatusLabel($cliente['status'], 'evento'); ?>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Eventos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📈 Eventos nos Últimos 6 Meses</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="eventosChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⚡ Ações Rápidas</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-3">
+                            <a href="clientes.php" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                                <i class="bi bi-person-plus" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Adicionar Cliente</strong>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="eventos.php" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                                <i class="bi bi-calendar-event" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Ver Eventos</strong>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="pagamentos.php" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                                <i class="bi bi-credit-card" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Pagamentos</strong>
+                            </a>
+                        </div>
+                        <div class="col-3">
+                            <a href="relatorios.php" class="btn btn-outline btn-block" style="padding: 1.5rem;">
+                                <i class="bi bi-file-earmark-text" style="font-size: 2rem; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Relatórios</strong>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para Gráfico -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('eventosChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [
+                    <?php 
+                    foreach ($graficoEventos as $item) {
+                        $data = DateTime::createFromFormat('Y-m', $item['mes']);
+                        echo "'" . $data->format('M/Y') . "',";
+                    }
+                    ?>
+                ],
+                datasets: [{
+                    label: 'Eventos',
+                    data: [<?php foreach ($graficoEventos as $item) echo $item['total'] . ','; ?>],
+                    borderColor: 'rgb(108, 99, 255)',
+                    backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+
+<?php include '../includes/admin_footer.php'; ?>

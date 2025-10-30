@@ -24,7 +24,7 @@ define('DB_CHARSET', 'utf8mb4');
 // ============================================
 define('SITE_URL', 'http://localhost/exdigital');
 define('SITE_NAME', 'ExDigital Pro');
-define('SITE_VERSION', '2.0.3');
+define('SITE_VERSION', '2.0.5');
 define('ADMIN_EMAIL', 'extensangola@gmailcom.com');
 
 // ============================================

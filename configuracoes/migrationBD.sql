@@ -432,5 +432,57 @@ CREATE INDEX idx_pagamentos_status_data ON pagamentos(status, criado_em);
 CREATE INDEX idx_logs_data ON logs_acesso(criado_em);
 
 -- ============================================
+-- TABELA: Tokens de Recuperação de Senha
+-- Adicionar ao banco de dados existente
+-- ============================================
+
+USE gestao_eventos_pro;
+
+-- Criar tabela de tokens
+CREATE TABLE IF NOT EXISTS tokens_recuperacao (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_tipo ENUM('admin', 'cliente') NOT NULL,
+    usuario_id INT NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    token VARCHAR(64) UNIQUE NOT NULL,
+    usado BOOLEAN DEFAULT FALSE,
+    expira_em DATETIME NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_usuario (usuario_tipo, usuario_id),
+    INDEX idx_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Limpar tokens expirados automaticamente
+CREATE EVENT IF NOT EXISTS limpar_tokens_expirados
+ON SCHEDULE EVERY 1 DAY
+DO
+    DELETE FROM tokens_recuperacao 
+    WHERE expira_em < NOW() OR usado = 1;
+
+-- ============================================
+-- ÍNDICES ADICIONAIS PARA PERFORMANCE
+-- ============================================
+
+-- Melhorar performance de buscas de convites
+ALTER TABLE convites 
+ADD INDEX idx_codigo_completo (codigo_convite),
+ADD INDEX idx_evento_presente (evento_id, presente_convidado1, presente_convidado2);
+
+-- Melhorar performance de pagamentos
+ALTER TABLE pagamentos
+ADD INDEX idx_status_data (status, criado_em),
+ADD INDEX idx_cliente_status (cliente_id, status);
+
+-- Melhorar performance de eventos
+ALTER TABLE eventos
+ADD INDEX idx_data_status (data_evento, status),
+ADD INDEX idx_cliente_data (cliente_id, data_evento);
+
+-- ============================================
+-- FIM DA MIGRATION
+-- ============================================
+
+-- ============================================
 -- FIM DO SCRIPT
 -- ============================================

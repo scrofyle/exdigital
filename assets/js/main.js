@@ -1,6 +1,6 @@
 /**
  * SISTEMA DE GESTÃO DE EVENTOS
- * JavaScript Principal
+ * JavaScript Principal - VERSÃO CORRIGIDA COM MENU MOBILE
  * Versão 2.0
  */
 
@@ -11,71 +11,233 @@
     // VARIÁVEIS GLOBAIS
     // ============================================
     const body = document.body;
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
-    const menuToggle = document.getElementById('menuToggle');
+    let sidebar = null;
+    let mainContent = null;
+    let menuToggle = null;
 
     // ============================================
-    // MENU SIDEBAR
+    // INICIALIZAÇÃO QUANDO DOM ESTIVER PRONTO
     // ============================================
-    if (menuToggle && sidebar && mainContent) {
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-            
-            // Salvar estado no localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
+    document.addEventListener('DOMContentLoaded', function() {
+        initMenuMobile();
+        initDropdowns();
+        initTabs();
+        initAutoCloseAlerts();
+        initFormValidation();
+        initCharCounter();
+        console.log('ExDigital Pro v2.0 - Sistema carregado!');
+    });
+
+    // ============================================
+    // MENU SIDEBAR MOBILE/DESKTOP - CORRIGIDO
+    // ============================================
+    function initMenuMobile() {
+        sidebar = document.getElementById('sidebar');
+        mainContent = document.getElementById('mainContent');
+        menuToggle = document.getElementById('menuToggle');
+
+        if (!menuToggle || !sidebar) {
+            console.warn('Menu toggle ou sidebar não encontrado');
+            return;
+        }
+
+        // Adicionar classe para mobile
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.add('mobile');
+            sidebar.classList.add('collapsed');
+        }
+
+        // Click no botão de menu
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMenu();
         });
 
-        // Restaurar estado do sidebar
-        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed');
-        if (sidebarCollapsed === 'true') {
-            sidebar.classList.add('collapsed');
+        // Fechar menu ao clicar fora (apenas em mobile)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 1024) {
+                if (sidebar && !sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    closeMenu();
+                }
+            }
+        });
+
+        // Prevenir propagação de cliques dentro do sidebar
+        if (sidebar) {
+            sidebar.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Fechar menu ao clicar em link (apenas mobile)
+        const sidebarLinks = sidebar ? sidebar.querySelectorAll('.sidebar-menu-link') : [];
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 1024) {
+                    setTimeout(() => closeMenu(), 300);
+                }
+            });
+        });
+
+        // Redimensionamento da janela
+        let resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                handleResize();
+            }, 250);
+        });
+
+        // Estado inicial
+        handleResize();
+    }
+
+    function toggleMenu() {
+        if (!sidebar) return;
+
+        if (sidebar.classList.contains('collapsed')) {
+            openMenu();
+        } else {
+            closeMenu();
+        }
+    }
+
+    function openMenu() {
+        if (!sidebar) return;
+
+        sidebar.classList.remove('collapsed');
+        
+        if (mainContent) {
+            mainContent.classList.remove('expanded');
+        }
+
+        // Adicionar overlay em mobile
+        if (window.innerWidth <= 1024) {
+            addOverlay();
+        }
+
+        // Salvar estado
+        if (window.innerWidth > 1024) {
+            localStorage.setItem('sidebarCollapsed', 'false');
+        }
+    }
+
+    function closeMenu() {
+        if (!sidebar) return;
+
+        sidebar.classList.add('collapsed');
+        
+        if (mainContent) {
             mainContent.classList.add('expanded');
         }
 
-        // Fechar sidebar em mobile ao clicar fora
-        if (window.innerWidth <= 1024) {
-            document.addEventListener('click', function(e) {
-                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-                    sidebar.classList.add('collapsed');
+        // Remover overlay
+        removeOverlay();
+
+        // Salvar estado (apenas desktop)
+        if (window.innerWidth > 1024) {
+            localStorage.setItem('sidebarCollapsed', 'true');
+        }
+    }
+
+    function addOverlay() {
+        // Verificar se já existe overlay
+        let overlay = document.getElementById('sidebar-overlay');
+        if (overlay) return;
+
+        overlay = document.createElement('div');
+        overlay.id = 'sidebar-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+        `;
+
+        overlay.addEventListener('click', closeMenu);
+        document.body.appendChild(overlay);
+    }
+
+    function removeOverlay() {
+        const overlay = document.getElementById('sidebar-overlay');
+        if (overlay) {
+            overlay.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
                 }
-            });
+            }, 300);
+        }
+    }
+
+    function handleResize() {
+        if (!sidebar) return;
+
+        const width = window.innerWidth;
+
+        if (width <= 1024) {
+            // Mobile: sempre iniciar fechado
+            sidebar.classList.add('mobile');
+            sidebar.classList.add('collapsed');
+            if (mainContent) {
+                mainContent.classList.add('expanded');
+            }
+        } else {
+            // Desktop: restaurar estado salvo
+            sidebar.classList.remove('mobile');
+            removeOverlay();
+            
+            const savedState = localStorage.getItem('sidebarCollapsed');
+            if (savedState === 'true') {
+                sidebar.classList.add('collapsed');
+                if (mainContent) {
+                    mainContent.classList.add('expanded');
+                }
+            } else {
+                sidebar.classList.remove('collapsed');
+                if (mainContent) {
+                    mainContent.classList.remove('expanded');
+                }
+            }
         }
     }
 
     // ============================================
     // DROPDOWNS
     // ============================================
-    const dropdowns = document.querySelectorAll('.dropdown');
-    
-    dropdowns.forEach(dropdown => {
-        const toggle = dropdown.querySelector('.dropdown-toggle');
-        const menu = dropdown.querySelector('.dropdown-menu');
+    function initDropdowns() {
+        const dropdowns = document.querySelectorAll('.dropdown');
         
-        if (toggle && menu) {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                
-                // Fechar outros dropdowns
-                dropdowns.forEach(otherDropdown => {
-                    if (otherDropdown !== dropdown) {
-                        otherDropdown.classList.remove('active');
-                    }
-                });
-                
-                dropdown.classList.toggle('active');
-            });
-        }
-    });
-
-    // Fechar dropdowns ao clicar fora
-    document.addEventListener('click', function() {
         dropdowns.forEach(dropdown => {
-            dropdown.classList.remove('active');
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            
+            if (toggle) {
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Fechar outros dropdowns
+                    dropdowns.forEach(other => {
+                        if (other !== dropdown) {
+                            other.classList.remove('active');
+                        }
+                    });
+                    
+                    dropdown.classList.toggle('active');
+                });
+            }
         });
-    });
+
+        // Fechar dropdowns ao clicar fora
+        document.addEventListener('click', function() {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        });
+    }
 
     // ============================================
     // MODAIS
@@ -97,21 +259,19 @@
     };
 
     // Fechar modal ao clicar no overlay
-    const modalOverlays = document.querySelectorAll('.modal-overlay');
-    modalOverlays.forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
-                body.style.overflow = '';
-            }
-        });
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('active');
+            body.style.overflow = '';
+        }
     });
 
     // Fechar modal com ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            modalOverlays.forEach(overlay => {
-                overlay.classList.remove('active');
+            const modals = document.querySelectorAll('.modal-overlay.active');
+            modals.forEach(modal => {
+                modal.classList.remove('active');
             });
             body.style.overflow = '';
         }
@@ -120,44 +280,50 @@
     // ============================================
     // TABS
     // ============================================
-    const tabItems = document.querySelectorAll('.tab-item');
-    
-    tabItems.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const targetId = this.getAttribute('data-target');
-            
-            // Remover active de todas as tabs
-            tabItems.forEach(t => t.classList.remove('active'));
-            
-            // Adicionar active na tab clicada
-            this.classList.add('active');
-            
-            // Esconder todos os conteúdos
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
+    function initTabs() {
+        const tabItems = document.querySelectorAll('.tab-item');
+        
+        tabItems.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                
+                // Remover active de todas as tabs
+                tabItems.forEach(t => t.classList.remove('active'));
+                
+                // Adicionar active na tab clicada
+                this.classList.add('active');
+                
+                // Esconder todos os conteúdos
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Mostrar conteúdo da tab clicada
+                const targetContent = document.getElementById(targetId);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                }
             });
-            
-            // Mostrar conteúdo da tab clicada
-            const targetContent = document.getElementById(targetId);
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
         });
-    });
+    }
 
     // ============================================
     // ALERTAS AUTO-CLOSE
     // ============================================
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-        setTimeout(() => {
-            alert.style.transition = 'opacity 0.3s ease';
-            alert.style.opacity = '0';
+    function initAutoCloseAlerts() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
             setTimeout(() => {
-                alert.remove();
-            }, 300);
-        }, 5000);
-    });
+                alert.style.transition = 'opacity 0.3s ease';
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    if (alert.parentNode) {
+                        alert.parentNode.removeChild(alert);
+                    }
+                }, 300);
+            }, 5000);
+        });
+    }
 
     // ============================================
     // CONFIRMAÇÃO DE EXCLUSÃO
@@ -165,17 +331,6 @@
     window.confirmDelete = function(message) {
         return confirm(message || 'Tem certeza que deseja excluir este item?');
     };
-
-    const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            const message = this.getAttribute('data-confirm-delete');
-            if (!confirm(message || 'Tem certeza que deseja excluir?')) {
-                e.preventDefault();
-                return false;
-            }
-        });
-    });
 
     // ============================================
     // BUSCA NA TABELA
@@ -188,14 +343,9 @@
             
             if (table) {
                 const rows = table.querySelectorAll('tr');
-                
                 rows.forEach(row => {
                     const text = row.textContent.toLowerCase();
-                    if (text.includes(searchValue)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+                    row.style.display = text.includes(searchValue) ? '' : 'none';
                 });
             }
         });
@@ -308,43 +458,21 @@
         setTimeout(() => {
             toast.style.animation = 'slideOutRight 0.3s ease';
             setTimeout(() => {
-                document.body.removeChild(toast);
+                if (toast.parentNode) {
+                    document.body.removeChild(toast);
+                }
             }, 300);
         }, 3000);
     };
-
-    // Adicionar animações CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
 
     // ============================================
     // LOADING OVERLAY
     // ============================================
     window.showLoading = function() {
-        const loading = document.createElement('div');
+        let loading = document.getElementById('loadingOverlay');
+        if (loading) return;
+        
+        loading = document.createElement('div');
         loading.className = 'loading-overlay';
         loading.id = 'loadingOverlay';
         loading.innerHTML = '<div class="spinner"></div>';
@@ -353,72 +481,70 @@
 
     window.hideLoading = function() {
         const loading = document.getElementById('loadingOverlay');
-        if (loading) {
-            loading.remove();
+        if (loading && loading.parentNode) {
+            loading.parentNode.removeChild(loading);
         }
     };
 
     // ============================================
     // FORMULÁRIOS - VALIDAÇÃO
     // ============================================
-    const forms = document.querySelectorAll('form[data-validate]');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            let isValid = true;
-            
-            // Validar campos obrigatórios
-            const requiredFields = form.querySelectorAll('[required]');
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    isValid = false;
-                    field.classList.add('error');
-                    
-                    // Mostrar mensagem de erro
-                    let errorMsg = field.parentElement.querySelector('.form-error');
-                    if (!errorMsg) {
-                        errorMsg = document.createElement('span');
-                        errorMsg.className = 'form-error';
-                        errorMsg.textContent = 'Este campo é obrigatório';
-                        field.parentElement.appendChild(errorMsg);
+    function initFormValidation() {
+        const forms = document.querySelectorAll('form[data-validate]');
+        forms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                const requiredFields = form.querySelectorAll('[required]');
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.classList.add('error');
+                        
+                        let errorMsg = field.parentElement.querySelector('.form-error');
+                        if (!errorMsg) {
+                            errorMsg = document.createElement('span');
+                            errorMsg.className = 'form-error';
+                            errorMsg.textContent = 'Este campo é obrigatório';
+                            field.parentElement.appendChild(errorMsg);
+                        }
+                    } else {
+                        field.classList.remove('error');
+                        const errorMsg = field.parentElement.querySelector('.form-error');
+                        if (errorMsg) {
+                            errorMsg.remove();
+                        }
                     }
-                } else {
-                    field.classList.remove('error');
-                    const errorMsg = field.parentElement.querySelector('.form-error');
-                    if (errorMsg) {
-                        errorMsg.remove();
+                });
+                
+                const emailFields = form.querySelectorAll('input[type="email"]');
+                emailFields.forEach(field => {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (field.value && !emailRegex.test(field.value)) {
+                        isValid = false;
+                        field.classList.add('error');
                     }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
+                    return false;
                 }
             });
-            
-            // Validar email
-            const emailFields = form.querySelectorAll('input[type="email"]');
-            emailFields.forEach(field => {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (field.value && !emailRegex.test(field.value)) {
-                    isValid = false;
-                    field.classList.add('error');
-                }
-            });
-            
-            if (!isValid) {
-                e.preventDefault();
-                showNotification('Por favor, preencha todos os campos obrigatórios', 'error');
-                return false;
-            }
         });
-    });
 
-    // Remover erro ao digitar
-    const inputFields = document.querySelectorAll('.form-control');
-    inputFields.forEach(input => {
-        input.addEventListener('input', function() {
-            this.classList.remove('error');
-            const errorMsg = this.parentElement.querySelector('.form-error');
-            if (errorMsg && !this.hasAttribute('required') || this.value.trim()) {
-                errorMsg.remove();
-            }
+        const inputFields = document.querySelectorAll('.form-control');
+        inputFields.forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('error');
+                const errorMsg = this.parentElement.querySelector('.form-error');
+                if (errorMsg && (!this.hasAttribute('required') || this.value.trim())) {
+                    errorMsg.remove();
+                }
+            });
         });
-    });
+    }
 
     // ============================================
     // IMPRESSÃO
@@ -448,7 +574,6 @@
             csv.push(rowData.join(','));
         });
         
-        // Download
         const csvContent = csv.join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -468,35 +593,93 @@
     // ============================================
     // CONTADOR DE CARACTERES
     // ============================================
-    const textareaWithCounter = document.querySelectorAll('textarea[data-max-length]');
-    textareaWithCounter.forEach(textarea => {
-        const maxLength = parseInt(textarea.getAttribute('data-max-length'));
-        const counter = document.createElement('div');
-        counter.className = 'char-counter';
-        counter.style.cssText = 'text-align: right; font-size: 0.813rem; color: var(--gray-medium); margin-top: 0.25rem;';
-        
-        const updateCounter = () => {
-            const length = textarea.value.length;
-            counter.textContent = `${length} / ${maxLength}`;
+    function initCharCounter() {
+        const textareaWithCounter = document.querySelectorAll('textarea[data-max-length]');
+        textareaWithCounter.forEach(textarea => {
+            const maxLength = parseInt(textarea.getAttribute('data-max-length'));
+            const counter = document.createElement('div');
+            counter.className = 'char-counter';
+            counter.style.cssText = 'text-align: right; font-size: 0.813rem; color: var(--gray-medium); margin-top: 0.25rem;';
             
-            if (length > maxLength) {
-                counter.style.color = 'var(--danger-color)';
-            } else if (length > maxLength * 0.9) {
-                counter.style.color = 'var(--warning-color)';
-            } else {
-                counter.style.color = 'var(--gray-medium)';
-            }
-        };
-        
-        textarea.parentElement.appendChild(counter);
-        updateCounter();
-        
-        textarea.addEventListener('input', updateCounter);
-    });
+            const updateCounter = () => {
+                const length = textarea.value.length;
+                counter.textContent = `${length} / ${maxLength}`;
+                
+                if (length > maxLength) {
+                    counter.style.color = 'var(--danger-color)';
+                } else if (length > maxLength * 0.9) {
+                    counter.style.color = 'var(--warning-color)';
+                } else {
+                    counter.style.color = 'var(--gray-medium)';
+                }
+            };
+            
+            textarea.parentElement.appendChild(counter);
+            updateCounter();
+            
+            textarea.addEventListener('input', updateCounter);
+        });
+    }
 
     // ============================================
-    // INICIALIZAÇÃO COMPLETA
+    // ADICIONAR ANIMAÇÕES CSS
     // ============================================
-    console.log('Sistema de Gestão de Eventos - v2.0 carregado com sucesso!');
-    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Menu Mobile Fix */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: transform 0.3s ease;
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                transition: none;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
 })();
